@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>المنيو - KERSh KEEPERS</title>
+  <meta name="description" content="كرش كيبرز - المنيو الكامل" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="rtl">
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <div class="brand-logo">K</div>
+        <div class="brand-text">
+          <span class="brand-name">KERSh KEEPERS</span>
+          <span class="brand-slogan">SHAWARMA & GRILL</span>
+        </div>
+      </a>
+      <div class="nav-links"></div>
+      <div class="nav-actions">
+        <button id="lang-switch">English</button>
+        <button class="nav-toggle"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 data-i18n="menu.title">المنيو</h1>
+    <div class="header-line"></div>
+  </div>
+
+  <!-- Menu Content -->
+  <section class="section">
+    <!-- Search -->
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="menu-search" data-i18n-placeholder="menu.search" placeholder="ابحث عن طبق... (عربي / English)" />
+    </div>
+
+    <!-- Category Nav -->
+    <div class="cat-nav" id="cat-nav"></div>
+
+    <!-- Products -->
+    <div class="product-grid" id="product-grid"></div>
+
+    <!-- No Results -->
+    <div class="no-results hidden text-center" id="no-results" style="padding: 60px 16px;">
+      <p style="font-size: 1.2rem; color: var(--gray);" data-i18n="menu.noResults">لا توجد نتائج</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-brand">KERSh KEEPERS</div>
+    <div class="footer-slogan">SHAWARMA & GRILL</div>
+    <div class="footer-phone">
+      <a href="tel:0504802787">0504802787</a> | 
+      <a href="https://wa.me/201220776716" target="_blank">01220776716</a>
+    </div>
+    <div class="footer-copy">
+      &copy; 2026 KERSh KEEPERS — <span data-i18n="footer.rights">جميع الحقوق محفوظة</span>
+    </div>
+  </footer>
+
+  <!-- Sticky Cart -->
+  <div class="sticky-cart" id="sticky-cart">
+    <a href="cart.html">
+      🛒 <span data-i18n="nav.cart">السلة</span>
+      <span class="sticky-badge cart-badge" style="display:none">0</span>
+    </a>
+  </div>
+
+  <!-- Scripts -->
+  <script src="./data/products.js"></script>
+  <script src="./js/language.js"></script>
+  <script src="./js/cart.js"></script>
+  <script src="./js/whatsapp.js"></script>
+  <script src="./js/app.js"></script>
+  <script>
+    var currentCat = "all";
+    var currentSearch = "";
+
+    function renderMenu() {
+      var grid = document.getElementById("product-grid");
+      var noResults = document.getElementById("no-results");
+      if (!grid) return;
+
+      grid.innerHTML = "";
+
+      var list;
+      if (currentSearch.trim() !== "") {
+        list = searchProducts(currentSearch);
+      } else if (currentCat === "all") {
+        list = products.filter(function (p) { return p.available; });
+      } else {
+        list = getProductsByCategory(currentCat);
+      }
+
+      if (list.length === 0) {
+        grid.classList.add("hidden");
+        noResults.classList.remove("hidden");
+      } else {
+        grid.classList.remove("hidden");
+        noResults.classList.add("hidden");
+        list.forEach(function (p) {
+          grid.appendChild(renderProductCard(p));
+        });
+      }
+    }
+
+    function renderCatNav() {
+      var container = document.getElementById("cat-nav");
+      if (!container) return;
+      renderCategoryNav(container, currentCat, function (catId) {
+        currentCat = catId;
+        currentSearch = "";
+        var searchInput = document.getElementById("menu-search");
+        if (searchInput) searchInput.value = "";
+        renderCatNav();
+        renderMenu();
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      /* Check URL for category */
+      var params = new URLSearchParams(window.location.search);
+      var catParam = params.get("cat");
+      if (catParam) currentCat = catParam;
+
+      renderCatNav();
+      renderMenu();
+
+      /* Search */
+      var searchInput = document.getElementById("menu-search");
+      if (searchInput) {
+        searchInput.addEventListener("input", function () {
+          currentSearch = searchInput.value;
+          if (currentSearch.trim() !== "") {
+            currentCat = "all";
+            renderCatNav();
+          }
+          renderMenu();
+        });
+      }
+
+      /* Sticky cart */
+      var sticky = document.getElementById("sticky-cart");
+      if (sticky) sticky.classList.add("show");
+
+      /* Re-render on lang change */
+      document.addEventListener("langChanged", function () {
+        renderCatNav();
+        renderMenu();
+      });
+    });
+  </script>
+</body>
+</html>

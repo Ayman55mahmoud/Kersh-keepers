@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>السلة - KERSh KEEPERS</title>
+  <meta name="description" content="كرش كيبرز - سلة المشتريات" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="rtl">
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <div class="brand-logo">K</div>
+        <div class="brand-text">
+          <span class="brand-name">KERSh KEEPERS</span>
+          <span class="brand-slogan">SHAWARMA & GRILL</span>
+        </div>
+      </a>
+      <div class="nav-links"></div>
+      <div class="nav-actions">
+        <button id="lang-switch">English</button>
+        <button class="nav-toggle"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="cart-page">
+    <div class="page-header">
+      <h1 data-i18n="cart.title">سلة المشتريات</h1>
+      <div class="header-line"></div>
+    </div>
+
+    <section class="section">
+      <!-- Cart Items -->
+      <div id="cart-items"></div>
+
+      <!-- Cart Summary + Checkout (hidden if empty) -->
+      <div id="cart-checkout-section" class="hidden">
+        <div class="cart-summary" id="cart-summary"></div>
+
+        <!-- Checkout Form -->
+        <div class="checkout-form" id="checkout-form">
+          <h3 style="color: var(--gold); margin-bottom: 16px;" data-i18n="checkout.title">بيانات الطلب</h3>
+
+          <div class="form-group">
+            <label data-i18n="checkout.name">الاسم</label>
+            <input type="text" id="cust-name" required />
+            <div class="form-error" id="cust-name-error" data-i18n="checkout.nameRequired">الاسم مطلوب</div>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="checkout.phone">رقم الهاتف</label>
+            <input type="tel" id="cust-phone" required />
+            <div class="form-error" id="cust-phone-error" data-i18n="checkout.phoneRequired">رقم الهاتف مطلوب</div>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="checkout.deliveryType">طريقة الاستلام</label>
+            <div class="delivery-options">
+              <div class="delivery-option active" data-type="delivery" data-i18n="checkout.delivery">توصيل</div>
+              <div class="delivery-option" data-type="pickup" data-i18n="checkout.pickup">استلام من المطعم</div>
+            </div>
+          </div>
+
+          <div class="form-group" id="address-group">
+            <label data-i18n="checkout.address">العنوان</label>
+            <input type="text" id="cust-address" />
+            <div class="form-error" id="cust-address-error" data-i18n="checkout.addressRequired">العنوان مطلوب للتوصيل</div>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="checkout.notes">ملاحظات</label>
+            <textarea id="cust-notes" data-i18n-placeholder="checkout.notesPlaceholder" placeholder="أي ملاحظات إضافية..."></textarea>
+          </div>
+
+          <button class="btn btn-gold btn-block btn-lg" id="send-order" data-i18n="checkout.sendWhatsapp">إرسال الطلب عبر واتساب</button>
+        </div>
+      </div>
+
+      <!-- Empty Cart -->
+      <div id="cart-empty" class="cart-empty hidden">
+        <div class="cart-empty-icon">🛒</div>
+        <h2 data-i18n="cart.empty">سلتك فارغة</h2>
+        <p data-i18n="cart.emptyHint">تصفح المنيو وأضف أطباقك المفضلة</p>
+        <a href="menu.html" class="btn btn-gold btn-lg" data-i18n="cart.browseMenu">تصفح المنيو</a>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-brand">KERSh KEEPERS</div>
+    <div class="footer-slogan">SHAWARMA & GRILL</div>
+    <div class="footer-phone">
+      <a href="tel:0504802787">0504802787</a> | 
+      <a href="https://wa.me/201220776716" target="_blank">01220776716</a>
+    </div>
+    <div class="footer-copy">
+      &copy; 2026 KERSh KEEPERS — <span data-i18n="footer.rights">جميع الحقوق محفوظة</span>
+    </div>
+  </footer>
+
+  <script src="./data/products.js"></script>
+  <script src="./js/language.js"></script>
+  <script src="./js/cart.js"></script>
+  <script src="./js/whatsapp.js"></script>
+  <script src="./js/app.js"></script>
+  <script>
+    var deliveryType = "delivery";
+
+    function renderCart() {
+      var cart = getCart();
+      var itemsContainer = document.getElementById("cart-items");
+      var emptyContainer = document.getElementById("cart-empty");
+      var checkoutSection = document.getElementById("cart-checkout-section");
+
+      if (cart.length === 0) {
+        itemsContainer.innerHTML = "";
+        emptyContainer.classList.remove("hidden");
+        checkoutSection.classList.add("hidden");
+        return;
+      }
+
+      emptyContainer.classList.add("hidden");
+      checkoutSection.classList.remove("hidden");
+
+      /* Cart items */
+      itemsContainer.innerHTML = "";
+      cart.forEach(function (item, index) {
+        var div = document.createElement("div");
+        div.className = "cart-item";
+
+        var addonsText = "";
+        if (item.addons && item.addons.length > 0) {
+          addonsText = item.addons.map(function (a) { return a.name; }).join("، ");
+        }
+        var sauceText = item.sauce ? (getLang() === "ar" ? "صوص: " : "Sauce: ") + item.sauce : "";
+
+        div.innerHTML =
+          '<img src="' + item.image + '" alt="' + item.name + '" loading="lazy" ' +
+          'onerror="this.src=\'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&h=100&w=100\'" />' +
+          '<div class="cart-item-info">' +
+            '<div class="cart-item-name">' + item.name + '</div>' +
+            (item.sizeName ? '<div class="cart-item-size">' + (getLang() === "ar" ? "الحجم: " : "Size: ") + item.sizeName + '</div>' : '') +
+            (addonsText ? '<div class="cart-item-addons">' + (getLang() === "ar" ? "الإضافات: " : "Extras: ") + addonsText + '</div>' : '') +
+            (sauceText ? '<div class="cart-item-addons">' + sauceText + '</div>' : '') +
+            '<div class="cart-item-price">' + item.unitPrice + ' × ' + item.qty + ' = ' + (item.unitPrice * item.qty) + ' ' + t("menu.egp") + '</div>' +
+          '</div>' +
+          '<div class="cart-item-actions">' +
+            '<div class="cart-qty">' +
+              '<button onclick="changeQty(' + index + ', -1)">-</button>' +
+              '<span>' + item.qty + '</span>' +
+              '<button onclick="changeQty(' + index + ', 1)">+</button>' +
+            '</div>' +
+            '<button class="cart-remove" onclick="removeFromCart(' + index + ')" data-i18n="cart.removeItem">حذف</button>' +
+          '</div>';
+
+        itemsContainer.appendChild(div);
+      });
+
+      /* Summary */
+      var totals = getCartTotals();
+      var summary = document.getElementById("cart-summary");
+      summary.innerHTML =
+        '<div class="cart-summary-row"><span data-i18n="cart.subtotal">المجموع الفرعي</span><span>' + totals.subtotal + ' ' + t("menu.egp") + '</span></div>' +
+        '<div class="cart-summary-row"><span data-i18n="cart.addonsTotal">الإضافات</span><span>' + totals.addons + ' ' + t("menu.egp") + '</span></div>' +
+        '<div class="cart-summary-row total"><span data-i18n="cart.grandTotal">الإجمالي الكلي</span><span>' + totals.grand + ' ' + t("menu.egp") + '</span></div>';
+
+      /* Re-apply translations for dynamically added elements */
+      applyLang();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      renderCart();
+
+      /* Delivery type toggle */
+      document.querySelectorAll(".delivery-option").forEach(function (opt) {
+        opt.addEventListener("click", function () {
+          document.querySelectorAll(".delivery-option").forEach(function (o) { o.classList.remove("active"); });
+          opt.classList.add("active");
+          deliveryType = opt.getAttribute("data-type");
+          var addressGroup = document.getElementById("address-group");
+          if (deliveryType === "pickup") {
+            addressGroup.classList.add("hidden");
+          } else {
+            addressGroup.classList.remove("hidden");
+          }
+        });
+      });
+
+      /* Send order */
+      document.getElementById("send-order").addEventListener("click", function () {
+        var name = document.getElementById("cust-name").value.trim();
+        var phone = document.getElementById("cust-phone").value.trim();
+        var address = document.getElementById("cust-address").value.trim();
+        var notes = document.getElementById("cust-notes").value.trim();
+
+        var valid = true;
+
+        if (!name) {
+          document.getElementById("cust-name-error").classList.add("show");
+          valid = false;
+        } else {
+          document.getElementById("cust-name-error").classList.remove("show");
+        }
+
+        if (!phone) {
+          document.getElementById("cust-phone-error").classList.add("show");
+          valid = false;
+        } else {
+          document.getElementById("cust-phone-error").classList.remove("show");
+        }
+
+        if (deliveryType === "delivery" && !address) {
+          document.getElementById("cust-address-error").classList.add("show");
+          valid = false;
+        } else {
+          document.getElementById("cust-address-error").classList.remove("show");
+        }
+
+        if (!valid) return;
+
+        var cart = getCart();
+        var totals = getCartTotals();
+
+        var msg = buildOrderMessage({
+          name: name,
+          phone: phone,
+          address: address,
+          type: deliveryType,
+          notes: notes
+        }, cart, totals);
+
+        openWhatsApp(msg);
+        clearCart();
+      });
+
+      /* Re-render on cart change */
+      document.addEventListener("cartChanged", renderCart);
+
+      /* Re-render on lang change */
+      document.addEventListener("langChanged", renderCart);
+    });
+  </script>
+</body>
+</html>
